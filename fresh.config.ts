@@ -4,9 +4,13 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 await configure({
   sinks: { console: getConsoleSink() },
+  filters: {},
   loggers: [
-    { category: "your-app", sinks: ["console"], lowestLevel: "debug" },
-    { category: "fedify", sinks: ["console"], lowestLevel: "debug" },
+    {
+      category: ["logtape", "meta"],
+      sinks: ["console"],
+      lowestLevel: "warning",
+    },
   ],
 
   contextLocalStorage: new AsyncLocalStorage(),

@@ -1,6 +1,7 @@
 import { FreshContext } from "$fresh/server.ts";
-import { normalizeUrl } from "../lib/util.ts";
+import { formatUsername, normalizeUrl } from "../lib/util.ts";
 import { fetchMetadata } from "../lib/ap.ts";
+import { FxFediError } from "../lib/error.ts";
 
 const exampleOembed = {
   "author_name":
@@ -31,18 +32,18 @@ export const handler = async (
 ): Promise<Response> => {
   const rawUrl = ctx.url.searchParams.get("uri");
   if (rawUrl === null) {
-    throw new Error("NOT ALLOWED TO NTO GIVE ME A URI");
+    throw new FxFediError("No URI provided for oembed information");
   }
   const normalizedUrl = normalizeUrl(rawUrl);
   const metadata = await fetchMetadata(req, new URL(normalizedUrl));
-  const authorMetadata = metadata.find((v) =>
-    v.name === "author" && v.content !== undefined
-  );
   const res: OEmbed = {
-    author_name: authorMetadata?.content,
-    author_url: normalizedUrl.toString(),
-    provider_name: normalizedUrl.host,
-    provider_url: "https://katlyn.dev",
+    author_name: formatUsername(metadata.attribution, metadata.instance) ??
+      metadata.attribution?.preferredName ?? undefined,
+    author_url: (metadata?.attribution?.url ?? metadata?.url ?? normalizedUrl)
+      .toString(),
+    provider_name: metadata?.instance?.domain ?? metadata?.instance?.title ??
+      metadata?.url?.hostname ?? normalizedUrl.hostname,
+    provider_url: normalizedUrl.toString(),
     title: "Embed",
     type: "link",
     version: "1.0",

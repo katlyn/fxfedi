@@ -20,7 +20,6 @@ export const federation = createFederation<void>({
   kv: new MemoryKvStore(),
   userAgent: {
     software: "fxfedi/0.0.1",
-    // TODO: figure out env var stuff for deno to populate this dynamically
     url: env.federation.url,
   },
   allowPrivateAddress: env.federation.allowPrivateAddress,

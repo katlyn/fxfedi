@@ -2,17 +2,43 @@ import {
   Actor,
   Document,
   Image as APImage,
+  Link,
   Note,
   Object as APObject,
+  PropertyValue,
 } from "@fedify/fedify";
 import { htmlToText } from "./util.ts";
 import { federation } from "./federation.ts";
 import env from "./env.ts";
+import { FxFediFetchError, FxFediMetadataError } from "./error.ts";
 
-interface Metadata {
-  name?: string;
-  content?: string;
-  property?: string;
+export interface MediaMetadata {
+  url: URL;
+  type: string;
+  alt: string | null;
+  height: number | null;
+  width: number | null;
+}
+
+export interface AttributionMetadata {
+  url: URL | null;
+  preferredName: string | null;
+  name: string | null;
+}
+
+export interface InstanceMetadata {
+  domain: string;
+  title: string;
+}
+
+export interface Metadata {
+  type: string;
+  url: URL | null;
+  attribution: AttributionMetadata | null;
+  instance: InstanceMetadata | null;
+  textContent: string | null;
+  media: MediaMetadata[];
+  timestamp: Date;
 }
 
 export async function fetchMetadata(req: Request, url: URL) {
@@ -22,126 +48,108 @@ export async function fetchMetadata(req: Request, url: URL) {
   });
   const obj = await apCtx.lookupObject(url, { documentLoader: loader });
   if (obj === null) {
-    throw new Error("explodes you for looking up something that doesn't exist");
+    throw new FxFediFetchError(`Unable to fetch ActivityPub object at ${url}`);
   }
   return await buildMetadata(obj);
 }
 
-export function buildMetadata(obj: APObject): Promise<Metadata[]> {
-  if (obj === null) {
-    throw new Error("Unable to fetch object information");
-  }
-
+export function buildMetadata(obj: APObject): Promise<Metadata> {
   switch (obj.constructor) {
     case Note: {
       return buildNoteMetadata(obj as Note);
     }
   }
-  return Promise.resolve([]);
+  throw new FxFediMetadataError(
+    `Object type ${obj.constructor.name} not supported`,
+  );
 }
 
-async function buildNoteMetadata(note: Note): Promise<Metadata[]> {
-  const metadata: Metadata[] = [{ property: "og:type", content: "article" }];
-
-  // Note author
-  try {
-    const attribution = await note.getAttribution();
-    if (attribution === null) {
-      metadata.push({
-        property: "og:title",
-        content: (note.id!).toString(),
-      });
-    } else {
-      const attributionUsername = await formatAttributionUsername(attribution);
-      metadata.push({ property: "og:title", content: attributionUsername });
-      metadata.push({ name: "author", content: attributionUsername });
-      metadata.push({
-        property: "profile:username",
-        content: attributionUsername,
-      });
-    }
-  } catch {}
+async function buildNoteMetadata(note: Note): Promise<Metadata> {
+  if (note.url === null) {
+    throw new FxFediMetadataError("Unknown note URL");
+  }
+  const attribution = await note.getAttribution();
+  const url = note.url instanceof URL ? note.url : note.url?.href ?? null;
 
   // Text content metadata
+  let textContent: string | null = null;
   if (note.content !== null) {
     const { content, summary, sensitive } = note;
-    let textContent = "";
+    textContent = "";
     if (sensitive && summary !== null) {
       textContent += `CW: ${summary}\n\n`;
     } else if (summary !== null) {
       textContent += `${summary}\n\n`;
     }
     textContent += content.toString();
-
-    metadata.push({ name: "description", content: textContent }, {
-      property: "og:description",
-      content: htmlToText(textContent),
-    });
+    textContent = htmlToText(textContent);
   }
 
-  // Attached media
-  const attachments = await Array.fromAsync(note.getAttachments());
-  const filteredImages = attachments.filter((attachment) =>
-    attachment instanceof Document || attachment instanceof APImage
-  );
-  metadata.push(...buildAttachmentMetadata(filteredImages));
-
-  // Timestamps
-  if (note.published) {
-    metadata.push({
-      property: "og:published_time",
-      content: note.published.toString(),
-    });
-  }
-
-  return metadata;
+  return {
+    type: "article",
+    url,
+    attribution: attribution ? (await buildAttribution(attribution)) : null,
+    instance: url === null ? null : await fetchInstanceMetadata(url),
+    textContent,
+    media: buildAttachmentMetadata(
+      await Array.fromAsync(note.getAttachments()),
+    ),
+    timestamp: note.published,
+  };
 }
 
 function buildAttachmentMetadata(
-  attachments: (Document | APImage)[],
-): Metadata[] {
-  const attachmentMeta = attachments.map((attachment) => {
-    if (
-      (
-        attachment.mediaType === null ||
-        !attachment.mediaType.startsWith("image/")
-      ) &&
-      !(attachment instanceof APImage)
-    ) {
-      return {} as Metadata;
-    }
-    return [
-      { property: "og:image", content: attachment.url?.toString() },
-      { property: "og:image:type", content: attachment.mediaType },
-      { property: "og:image:width", content: attachment.width },
-      { property: "og:image:height", content: attachment.height },
-      { property: "og:image:alt", content: attachment.name },
-    ];
-  }).flat().filter((m) => !!m.content);
+  attachments: (APObject | Link | PropertyValue)[],
+): MediaMetadata[] {
+  const filteredImages = attachments.filter((attachment) =>
+    attachment instanceof Document || attachment instanceof APImage
+  );
+  return filteredImages.map(
+    (attachment): MediaMetadata | null => {
+      if (
+        (
+          attachment.mediaType === null ||
+          !attachment.mediaType.startsWith("image/")
+        ) &&
+        !(attachment instanceof APImage)
+      ) {
+        return null;
+      }
 
-  if (attachmentMeta.length > 0) {
-    attachmentMeta.push({
-      property: "twitter:card",
-      content: "summary_large_image",
-    });
-  }
+      const url = attachment.url instanceof URL
+        ? attachment.url
+        : attachment.url?.href ?? null;
+      if (url === null) {
+        return null;
+      }
 
-  return attachmentMeta as Metadata[];
+      return {
+        url,
+        type: attachment.mediaType!,
+        alt: attachment.name?.toString() ?? null,
+        width: attachment.width,
+        height: attachment.height,
+      };
+    },
+  ).filter((m) => m !== null);
 }
 
-async function formatAttributionUsername(
+function buildAttribution(
   attribution: Actor,
-): Promise<string> {
-  if (attribution.preferredUsername !== null) {
-    return `@${attribution.name}@${await getInstanceUri(attribution.id!)}`;
-  }
-  if (attribution.name === null) {
-    return attribution.id!.toString();
-  }
-  return `@${attribution.name}@${await getInstanceUri(attribution.id!)}`;
+): AttributionMetadata {
+  const url = attribution.url instanceof URL
+    ? attribution.url
+    : attribution.url?.href ?? null;
+  return {
+    url: url,
+    preferredName: attribution.preferredUsername?.toString() ?? null,
+    name: attribution.name?.toString() ?? null,
+  };
 }
 
-async function getInstanceUri(instance: URL) {
+async function fetchInstanceMetadata(
+  instance: URL,
+): Promise<InstanceMetadata | null> {
   // Try the mastodon API, falling back to the domain in the URL
   const clonedUrl = new URL(instance);
   clonedUrl.pathname = "/api/v1/instance";
@@ -149,8 +157,11 @@ async function getInstanceUri(instance: URL) {
   try {
     const request = await fetch(clonedUrl);
     const body = await request.json();
-    return body.uri ?? clonedUrl.hostname;
+    return {
+      domain: body.uri ?? clonedUrl.hostname,
+      title: body.title ?? null,
+    };
   } catch {
-    return clonedUrl.hostname;
+    return null;
   }
 }

@@ -1,13 +1,17 @@
 import { Head } from "$fresh/runtime.ts";
 import { FreshContext } from "$fresh/server.ts";
-import { normalizeUrl } from "../lib/util.ts";
-import { buildMetadata, fetchMetadata } from "../lib/ap.ts";
+import { domainIsValid, normalizeUrl } from "../lib/util.ts";
+import { fetchMetadata } from "../lib/ap.ts";
+import APMetadata from "../components/APMetadata.tsx";
 
 export default async function ActivityPubMetadata(
   req: Request,
   ctx: FreshContext,
 ) {
   const normalizedUrl = normalizeUrl(ctx.params.url);
+  if (!domainIsValid(normalizedUrl)) {
+    return ctx.renderNotFound();
+  }
   const metadata = await fetchMetadata(req, new URL(normalizedUrl));
   const oembedEndpoint = new URL(ctx.url);
   oembedEndpoint.pathname = "/oembed";
@@ -27,7 +31,7 @@ export default async function ActivityPubMetadata(
           type="application/json+oembed"
           title={normalizedUrl.toString()}
         />
-        {metadata.map((attributes) => <meta {...attributes} />)}
+        <APMetadata metadata={metadata} />
       </Head>
       <code>
         <pre>{JSON.stringify(metadata, null, 2)}</pre>
