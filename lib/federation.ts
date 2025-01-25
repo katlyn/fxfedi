@@ -5,7 +5,7 @@ import {
   generateCryptoKeyPair,
   importJwk,
   MemoryKvStore,
-  Person,
+  Service,
 } from "@fedify/fedify";
 import { kv, KvKeys } from "./kv.ts";
 import env from "./env.ts";
@@ -34,7 +34,7 @@ federation
       }
 
       const keys = await ctx.getActorKeyPairs(identifier);
-      return new Person({
+      return new Service({
         id: ctx.getActorUri(identifier),
         preferredUsername: identifier,
         name: identifier,
@@ -43,6 +43,7 @@ federation
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
         }),
+
         url: ctx.getActorUri(identifier),
         publicKey: keys[0] ? keys[0].cryptographicKey : null,
         assertionMethods: keys.map((k) => k.multikey),
