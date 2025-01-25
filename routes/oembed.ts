@@ -3,19 +3,6 @@ import { formatUsername, normalizeUrl } from "../lib/util.ts";
 import { fetchMetadata } from "../lib/ap.ts";
 import { FxFediError } from "../lib/error.ts";
 
-const exampleOembed = {
-  "author_name":
-    "the argument destroyer (my bluesky besties get an early flipnote today)",
-  "author_url":
-    "https://bsky.app/profile/raxdflipnote.bsky.social/post/3lbd5dgieb22j",
-  "provider_name": "🔁 910   ❤️ 4.5K",
-  "provider_url":
-    "https://bsky.app/profile/raxdflipnote.bsky.social/post/3lbd5dgieb22j",
-  "title": "Embed",
-  "type": "link",
-  "version": "1.0",
-};
-
 interface OEmbed {
   author_name?: string;
   author_url: string;
