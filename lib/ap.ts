@@ -24,6 +24,7 @@ export interface AttributionMetadata {
   url: URL | null;
   preferredName: string | null;
   name: string | null;
+  optOut: boolean;
 }
 
 export interface InstanceMetadata {
@@ -140,10 +141,14 @@ function buildAttribution(
   const url = attribution.url instanceof URL
     ? attribution.url
     : attribution.url?.href ?? null;
+  const optOutPhrases = ["nobot", "noindex", "noarchive"];
   return {
     url: url,
     preferredName: attribution.preferredUsername?.toString() ?? null,
     name: attribution.name?.toString() ?? null,
+    optOut: optOutPhrases.some((phrase) =>
+      attribution.summary?.toString()?.toLowerCase()?.includes(phrase) ?? false
+    ),
   };
 }
 
