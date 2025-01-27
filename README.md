@@ -1,11 +1,14 @@
 # fxfedi
 
-fxfedi is very similar to all the other projects that are called `fx<platform>` - it takes in a fediverse link, and
-spits out a version with better metadata than the first had. This is different from https://mas.to/ as mas.to relies on
-the Mastodon API to fetch data, whereas fxfedi uses ActivityPub to fetch information - in theory this will allow it to
-work across all fedi enabled content, and not just instances that implement the Mastodon API.
+fxfedi is very similar to all the other projects that are called
+`fx<platform>` - it takes in a fediverse link, and spits out a version with
+better metadata than the first had. This is different from https://mas.to/ as
+mas.to relies on the Mastodon API to fetch data, whereas fxfedi uses ActivityPub
+to fetch information - in theory this will allow it to work across all fedi
+enabled content, and not just instances that implement the Mastodon API.
 
-fxfedi is still in development and doesn't have a functional deployment yet, but hopefully it will be ready soon!
+fxfedi is still in development and doesn't have a functional deployment yet, but
+hopefully it will be ready soon!
 
 ### Usage
 
@@ -23,7 +26,8 @@ This will watch the project directory and restart as necessary.
 
 - [x] Make it respect any #nobot tags in author bios
 - [x] Fetch instance robots.txt and check incoming useragent against it
-- [ ] Provide documentation on how instances can block the bot from fetching posts
-- [ ] Redirect non-bot visitors to original post
+- [ ] Provide documentation on how instances can block the bot from fetching
+      posts
+- [x] Redirect non-bot visitors to original post
 - [ ] Better 404 page
 - [ ] Better caching!!!!!!!!
