@@ -21,6 +21,5 @@ export async function userAgentDeniedDisallowed(url: URL, userAgent: string) {
     return false;
   }
   // This is an explicit comparison as the function can also return undefined
-  console.log(robots.isDisallowed(url.toString(), userAgent));
   return robots.isDisallowed(url.toString(), userAgent) === true;
 }

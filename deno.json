@@ -26,6 +26,7 @@
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",
     "@logtape/logtape": "jsr:@logtape/logtape@^0.8.0",
     "html-to-text": "npm:html-to-text@9.0.5",
+    "isbot": "npm:isbot@5.1.21",
     "preact": "https://esm.sh/preact@10.22.0",
     "preact/": "https://esm.sh/preact@10.22.0/",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
