@@ -1,3 +1,4 @@
+/// <reference lib="deno.unstable" />
 export const kv = await Deno.openKv();
 export enum KvKeys {
   USER = "user",

@@ -21,8 +21,8 @@ This will watch the project directory and restart as necessary.
 
 ## Todos
 
-- [ ] Make it respect any #nobot tags in author bios
-- [ ] Fetch instance robots.txt and check incoming useragent against it
+- [x] Make it respect any #nobot tags in author bios
+- [x] Fetch instance robots.txt and check incoming useragent against it
 - [ ] Provide documentation on how instances can block the bot from fetching posts
 - [ ] Redirect non-bot visitors to original post
 - [ ] Better 404 page

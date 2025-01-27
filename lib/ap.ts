@@ -39,7 +39,7 @@ export interface Metadata {
   instance: InstanceMetadata | null;
   textContent: string | null;
   media: MediaMetadata[];
-  timestamp: Date;
+  timestamp: Temporal.Instant | null;
 }
 
 export async function fetchMetadata(req: Request, url: URL) {
@@ -78,7 +78,7 @@ async function buildNoteMetadata(note: Note): Promise<Metadata> {
     const { content, summary, sensitive } = note;
     textContent = "";
     if (sensitive && summary !== null) {
-      textContent += `CW: ${summary}\n\n`;
+      textContent += `[CW: ${summary}]\n\n`;
     } else if (summary !== null) {
       textContent += `${summary}\n\n`;
     }
@@ -156,9 +156,7 @@ async function fetchInstanceMetadata(
   instance: URL,
 ): Promise<InstanceMetadata | null> {
   // Try the mastodon API, falling back to the domain in the URL
-  const clonedUrl = new URL(instance);
-  clonedUrl.pathname = "/api/v1/instance";
-
+  const clonedUrl = new URL("/api/v1/instance", instance);
   try {
     const request = await fetch(clonedUrl);
     const body = await request.json();

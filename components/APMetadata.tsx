@@ -1,5 +1,6 @@
 import { Metadata } from "../lib/ap.ts";
 import { formatUsername } from "../lib/util.ts";
+import ErrorMetadata from "./ErrorMetadata.tsx";
 
 interface MetadataTag {
   name?: string;
@@ -7,14 +8,12 @@ interface MetadataTag {
   property?: string;
 }
 
-const optedOutMeta: MetadataTag[] = [
-  { property: "og:title", content: "Unable to fetch metadata" },
-  {
-    property: "og:description",
-    content:
-      "The author of this post has requested to opt out of bot-related activities.",
-  },
-];
+const optedOutMeta = (
+  <ErrorMetadata
+    title="Unabled to fetch metadata"
+    description="The author of this post has requested to opt out of bot-related activities."
+  />
+);
 
 export default function APMetadata(
   { metadata: { attribution, media, instance, timestamp, textContent } }: {
@@ -75,9 +74,9 @@ export default function APMetadata(
 
   return (
     <>
-      {(attributionOptedOut ? optedOutMeta : tags).map((attributes) => (
-        <meta {...attributes} />
-      ))}
+      {attributionOptedOut
+        ? optedOutMeta
+        : tags.map((attributes) => <meta {...attributes} />)}
     </>
   );
 }
