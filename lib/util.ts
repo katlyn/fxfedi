@@ -17,7 +17,11 @@ export function normalizeUrl(url: string) {
     url = url.replace(garbledUrlRegex, secure ? "https://" : "http://");
   }
 
-  return new URL(urlRegex.test(url) ? url : "http://" + url);
+  try {
+    return new URL(urlRegex.test(url) ? url : "http://" + url);
+  } catch {
+    return null;
+  }
 }
 
 export function domainIsValid(url: URL): boolean {
