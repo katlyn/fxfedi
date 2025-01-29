@@ -13,7 +13,7 @@ export default async function ActivityPubMetadata(
 ) {
   const normalizedUrl = normalizeUrl(ctx.params.url);
   // Fetch the post
-  if (!domainIsValid(normalizedUrl)) {
+  if (normalizedUrl === null || !domainIsValid(normalizedUrl)) {
     return ctx.renderNotFound();
   }
 
@@ -63,9 +63,6 @@ export default async function ActivityPubMetadata(
         />
         <APMetadata metadata={metadata} />
       </Head>
-      <code>
-        <pre>{JSON.stringify(metadata, null, 2)}</pre>
-      </code>
     </>
   );
 }
