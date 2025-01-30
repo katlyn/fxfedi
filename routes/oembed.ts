@@ -1,7 +1,6 @@
 import { FreshContext } from "$fresh/server.ts";
 import { formatUsername, normalizeUrl } from "../lib/util.ts";
 import { fetchMetadata } from "../lib/ap.ts";
-import { FxFediError } from "../lib/error.ts";
 
 interface OEmbed {
   author_name?: string;
@@ -13,17 +12,16 @@ interface OEmbed {
   version: "1.0";
 }
 
-export const handler = async (
-  req: Request,
-  ctx: FreshContext,
-): Promise<Response> => {
-  const rawUrl = ctx.url.searchParams.get("uri");
+async function getOembed(req, rawUrl: string | null): Promise<OEmbed | null> {
   if (rawUrl === null) {
-    throw new FxFediError("No URI provided for oembed information");
+    return null;
   }
   const normalizedUrl = normalizeUrl(rawUrl);
+  if (normalizedUrl == null) {
+    return null;
+  }
   const metadata = await fetchMetadata(req, new URL(normalizedUrl));
-  const res: OEmbed = {
+  return {
     author_name: formatUsername(metadata.attribution, metadata.instance) ??
       metadata.attribution?.preferredName ?? undefined,
     author_url: (metadata?.attribution?.url ?? metadata?.url ?? normalizedUrl)
@@ -35,8 +33,15 @@ export const handler = async (
     type: "link",
     version: "1.0",
   };
+}
+
+export const handler = async (
+  req: Request,
+  ctx: FreshContext,
+): Promise<Response> => {
+  const rawUrl = ctx.url.searchParams.get("uri");
   return new Response(
-    JSON.stringify(res),
+    JSON.stringify(await getOembed(req, rawUrl) ?? {}),
     {
       headers: { "content-type": "application/json" },
     },
