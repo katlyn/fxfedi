@@ -173,7 +173,13 @@ export default function Home() {
       <h2>Links and contact</h2>
       <p>
         fxfedi is created by <a href="https://katlyn.dev/">katlyn</a>{" "}
-        and its source code is available
+        and its source code is available at{" "}
+        <a href="https://github.com/katlyn/fxfedi">github.com/katlyn/fxfedi</a>.
+        Feel free to reach out to{" "}
+        <a href="https://mastodon.is-hardly.online/@katlyn">
+          @katlyn@is-hardly.online
+        </a>{" "}
+        with any questions or comments.
       </p>
     </>
   );
