@@ -15,11 +15,13 @@ async function fetchRobots(url: URL): Promise<robotsParser.Robot | null> {
   }
 }
 
-export async function userAgentDeniedDisallowed(url: URL, userAgent: string) {
+export async function userAgentsDisallowed(url: URL, userAgents: string[]) {
   const robots = await fetchRobots(url);
   if (robots === null) {
     return false;
   }
   // This is an explicit comparison as the function can also return undefined
-  return robots.isDisallowed(url.toString(), userAgent) === true;
+  return userAgents.some((agent) =>
+    robots.isDisallowed(url.toString(), agent) === true
+  );
 }

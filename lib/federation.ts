@@ -3,6 +3,8 @@ import {
   Endpoints,
   exportJwk,
   generateCryptoKeyPair,
+  getUserAgent,
+  GetUserAgentOptions,
   importJwk,
   MemoryKvStore,
   Service,
@@ -15,13 +17,16 @@ export interface Key {
   publicKey: string;
 }
 
+const userAgentConfig: GetUserAgentOptions = {
+  software: "fxfedi/0.0.1",
+  url: env.federation.url,
+};
+export const userAgent = getUserAgent(userAgentConfig);
+
 export const federation = createFederation<void>({
   // TODO: Don't use memory cache smh smh smh
   kv: new MemoryKvStore(),
-  userAgent: {
-    software: "fxfedi/0.0.1",
-    url: env.federation.url,
-  },
+  userAgent: userAgentConfig,
   allowPrivateAddress: env.federation.allowPrivateAddress,
 });
 

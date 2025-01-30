@@ -4,8 +4,9 @@ import { domainIsValid, normalizeUrl } from "../lib/util.ts";
 import { fetchMetadata } from "../lib/ap.ts";
 import APMetadata from "../components/APMetadata.tsx";
 import ErrorMetadata from "../components/ErrorMetadata.tsx";
-import { userAgentDeniedDisallowed } from "../lib/robots.ts";
+import { userAgentsDisallowed } from "../lib/robots.ts";
 import { isbot } from "isbot";
+import { userAgent as federationUserAgent } from "../lib/federation.ts";
 
 export default async function ActivityPubMetadata(
   req: Request,
@@ -29,9 +30,9 @@ export default async function ActivityPubMetadata(
   }
   // Check if the remote site allows this UA to scrape them
   if (
-    await userAgentDeniedDisallowed(
+    await userAgentsDisallowed(
       normalizedUrl,
-      userAgent,
+      [userAgent, federationUserAgent],
     )
   ) {
     return (
