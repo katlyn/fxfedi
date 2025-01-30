@@ -1,0 +1,23 @@
+body {
+    max-width: 50rem;
+    margin: auto;
+    font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    padding: 2rem;
+}
+
+ol {
+    counter-reset: item;
+    margin-top: 0.5em;
+
+    li {
+        list-style: none;
+    }
+    li:before {
+        content: counters(item, ".") ". ";
+        counter-increment: item;
+    }
+}
+
+li {
+    margin-bottom: 0.25em;
+}

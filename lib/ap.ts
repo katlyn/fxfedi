@@ -42,6 +42,8 @@ export interface Metadata {
   timestamp: Temporal.Instant | null;
 }
 
+export const optOutPhrases = ["nobot", "noindex", "noarchive"];
+
 export async function fetchMetadata(req: Request, url: URL) {
   const apCtx = federation.createContext(req);
   const loader = await apCtx.getDocumentLoader({
@@ -141,7 +143,6 @@ function buildAttribution(
   const url = attribution.url instanceof URL
     ? attribution.url
     : attribution.url?.href ?? null;
-  const optOutPhrases = ["nobot", "noindex", "noarchive"];
   return {
     url: url,
     preferredName: attribution.preferredUsername?.toString() ?? null,
