@@ -12,7 +12,10 @@ interface OEmbed {
   version: "1.0";
 }
 
-async function getOembed(req: Request, rawUrl: string | null): Promise<OEmbed | null> {
+async function getOembed(
+  req: Request,
+  rawUrl: string | null,
+): Promise<OEmbed | null> {
   if (rawUrl === null) {
     return null;
   }
