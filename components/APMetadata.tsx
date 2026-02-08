@@ -76,7 +76,7 @@ export default function APMetadata(
     <>
       {attributionOptedOut
         ? optedOutMeta
-        : tags.map((attributes) => <meta {...attributes} />)}
+        : tags.map((attributes, idx) => <meta key={idx} {...attributes} />)}
     </>
   );
 }
