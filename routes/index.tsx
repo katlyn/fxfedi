@@ -141,7 +141,7 @@ export default function Home() {
           {optOutPhrases.map((
             phrase,
             i,
-          ) => [i > 0 && ", ", <code>{phrase}</code>])}.
+          ) => [i > 0 && ", ", <code key={phrase}>{phrase}</code>])}.
         </li>
       </ul>
       <p>
